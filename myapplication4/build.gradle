@@ -1,8 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+
     compileSdkVersion 25
     buildToolsVersion "25.0.1"
+
+    packagingOptions {
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/LICENSE'
+    }
 
     defaultConfig {
         applicationId "com.example.myapplication"
@@ -14,6 +20,8 @@ android {
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
+
+
     buildTypes {
         release {
             minifyEnabled false
@@ -31,4 +39,8 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile files('libs/okhttp-3.5.0.jar')
     compile files('libs/okio-1.11.0.jar')
+    compile files('libs/jackson-annotations-2.8.0.jar')
+    compile files('libs/jackson-core-2.8.1.jar')
+    compile files('libs/jackson-databind-2.8.5.jar')
+    compile files('libs/okhttp-urlconnection-3.4.1.jar')
 }

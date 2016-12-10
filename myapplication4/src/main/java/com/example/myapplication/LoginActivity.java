@@ -9,7 +9,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import com.example.myapplication.api.Server;
 import com.example.myapplication.fragment.inputcells.SimpleTextInputCellFragment;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 
@@ -71,17 +73,16 @@ public class LoginActivity extends Activity {
 
     void startLoginActivity() {
         //把账号密码post到服务器
-        String account = fragmentUsername.getText();
+        final String account = fragmentUsername.getText();
         String passwordHash = fragmentPassword.getText();
 
-        OkHttpClient okHttpClient = new OkHttpClient();
+        OkHttpClient okHttpClient = Server.getSharedClient();
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("account", account)
                 .addFormDataPart("passwordHash", passwordHash)
                 .build();
-        Request requestLogin = new Request.Builder()
-                .url("http://172.27.0.33:8080/membercenter/api/login")
+        Request requestLogin =Server.requestBuildWithApi("login")
                 .method("post", null)
                 .post(requestBody)//post上去的内容
                 .build();
@@ -108,23 +109,50 @@ public class LoginActivity extends Activity {
 
             @Override
             public void onResponse(final Call call, final Response response) throws IOException {
-                final String message = response.body().string();//把返回的2response转换为String,用于下面判断
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        progressDialog.dismiss();//登陆中提示信息取消显示
-                        if (message.equals("")) {
+                final String message = response.body().string();//把返回的response转换为String,用于下面判断
+                ObjectMapper objectMapper = new ObjectMapper();
+                try {
+                    final User user = objectMapper.readValue(message, User.class);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressDialog.dismiss();//登陆中提示信息取消显示
+                            //更新方法后的内容
+                            new AlertDialog.Builder(LoginActivity.this)
+                                    .setTitle("请求成功")
+                                    .setMessage("Hello  " + user.getAccount())//response是返回的登陆信息
+                                    .setPositiveButton("确认", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            Intent intent = new Intent(LoginActivity.this, HelloWorldActivity.class);
+                                            startActivity(intent);
+                                            //finish();
+                                        }
+                                    })
+                                    .show();
+
+                      /*  if (message.equals("")) {
                             LoginActivity.this.onFailure(call, "密码错误！");//密码错误跳转到失败提示方法
                         } else {
                             try {
-                                LoginActivity.this.onResponse(call,message);
+                                LoginActivity.this.onResponse(call, message);
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 LoginActivity.this.onFailure(call, e);//有问题跳转到失败提示方法
                             }
+                        }*/
                         }
-                    }
-                });
+                    });
+                } catch (final Exception e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressDialog.dismiss();//登陆中提示信息取消显示
+                            LoginActivity.this.onFailure(call, e);//有问题跳转到失败提示方法
+                        }
+                    });
+
+                }
             }
         });
 
@@ -152,13 +180,13 @@ public class LoginActivity extends Activity {
     void onFailure(Call call, Exception e) {
         new AlertDialog.Builder(this)
                 .setTitle("请求失败")
-                .setMessage(e.getLocalizedMessage())
+                .setMessage("未知错误 "+e.getLocalizedMessage())
                 .setPositiveButton("确认", null)
                 .show();
 
     }
 
-    //密码错误提示信息方法
+/*    //密码错误提示信息方法
     void onFailure(Call call, String fail) {
         new AlertDialog.Builder(this)
                 .setTitle("请求失败")
@@ -166,7 +194,7 @@ public class LoginActivity extends Activity {
                 .setPositiveButton("确认", null)
                 .show();
 
-    }
+    }*/
 
 
     @Override

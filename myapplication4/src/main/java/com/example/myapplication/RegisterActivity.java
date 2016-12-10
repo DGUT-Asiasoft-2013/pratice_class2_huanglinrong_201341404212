@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 
+import com.example.myapplication.api.Server;
 import com.example.myapplication.fragment.inputcells.SimpleTextInputCellFragment;
 
 import java.io.IOException;
@@ -73,8 +74,7 @@ public class RegisterActivity extends Activity {
                 .addFormDataPart("email", email)
                 .build();
 
-        Request request = new Request.Builder()
-                .url("http://172.27.0.33:8080/membercenter/api/register")
+        Request request = Server.requestBuildWithApi("register")
                 .method("post", null)
                 .post(requestBody)
                 .build();
