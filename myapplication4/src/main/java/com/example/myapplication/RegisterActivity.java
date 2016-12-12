@@ -63,8 +63,9 @@ public class RegisterActivity extends Activity {
         String account = fragInputCellAccount.getText();
         String name = fragInputCellName.getText();
         String email = fragInputCellAddress.getText();
-
-        OkHttpClient okHttpClient = new OkHttpClient();
+        //加密注册时密码
+        password=MD5.getMD5(password);
+        OkHttpClient okHttpClient =Server.getSharedClient();
 
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)

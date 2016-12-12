@@ -82,6 +82,8 @@ public class PasswordRecoverActivity extends Activity {
                     .show();
             return;
         }
+        //对于修改密码时输入的密码进行加密，然后传输到服务器
+        passwordHash=MD5.getMD5(passwordHash);
         OkHttpClient okHttpClient = Server.getSharedClient();
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)

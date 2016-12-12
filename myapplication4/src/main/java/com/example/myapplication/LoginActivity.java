@@ -75,7 +75,8 @@ public class LoginActivity extends Activity {
         //把账号密码post到服务器
         final String account = fragmentUsername.getText();
         String passwordHash = fragmentPassword.getText();
-
+        //对登陆时输入的密码加密然后传输到服务器
+        passwordHash=MD5.getMD5(passwordHash);
         OkHttpClient okHttpClient = Server.getSharedClient();
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
