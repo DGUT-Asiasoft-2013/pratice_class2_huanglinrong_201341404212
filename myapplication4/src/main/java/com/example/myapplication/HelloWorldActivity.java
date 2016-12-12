@@ -44,11 +44,12 @@ public class HelloWorldActivity extends Activity {
         });
 
     }
+
     //跳转inputeditActivity
     void startEditActivity() {
         Intent intent = new Intent(this, InputEditActivity.class);
         startActivity(intent);
-        overridePendingTransition(R.anim.slide_in_bottom,R.anim.none);
+        overridePendingTransition(R.anim.slide_in_bottom, R.anim.none);
 
     }
 

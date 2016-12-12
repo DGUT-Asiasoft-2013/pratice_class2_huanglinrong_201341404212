@@ -49,14 +49,32 @@ public class PasswordRecoverActivity extends Activity {
     }
 
     void goStep2() {
-        getFragmentManager().beginTransaction().replace(R.id.container, step2).addToBackStack(null).commit();
+        getFragmentManager()
+                .beginTransaction()
+                .setCustomAnimations(
+                        R.animator.slide_in_right,//忘记密码的左右切换
+                        R.animator.slide_out_left,
+                        R.animator.slide_in_left,
+                        R.animator.slide_out_right
+                )
+                .replace(R.id.container, step2)
+                .addToBackStack(null)
+                .commit();
     }
 
+    //修改密码方法
     void passwordRecover() {
 
         String email = step1.getEmail();
         String passwordHash = step2.getPassword();
         String passwordagain = step2.getPasswordRepeat();
+        if(passwordagain.equals("")||passwordHash.equals("")){
+            new AlertDialog.Builder(PasswordRecoverActivity.this)
+                    .setMessage("输入的密码不能为空!")
+                    .setNegativeButton("确认", null)
+                    .show();
+            return;
+        }
         if (!passwordHash.equals(passwordagain)) {
             new AlertDialog.Builder(PasswordRecoverActivity.this)
                     .setMessage("两次输入的密码不一致!")
