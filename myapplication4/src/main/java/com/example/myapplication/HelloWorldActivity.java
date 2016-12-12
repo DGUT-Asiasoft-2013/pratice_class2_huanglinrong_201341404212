@@ -28,14 +28,14 @@ public class HelloWorldActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_helloworld);
         tabbar = (MainTabbarFragment) getFragmentManager().findFragmentById(R.id.frag_tabbar);
-        //四个按钮事件
+        //重写四个按钮事件
         tabbar.setOnTabSelectedListener(new MainTabbarFragment.OnTabSelectedListener() {
             @Override
             public void onTabSelected(int index) {
                 changeContentFragment(index);
             }
         });
-        //加号按钮事件
+        //重写加号按钮事件
         tabbar.setOnBtnGoNextListener(new MainTabbarFragment.OnBtnGoNextListener() {
             @Override
             public void onBtnGoNext() {
