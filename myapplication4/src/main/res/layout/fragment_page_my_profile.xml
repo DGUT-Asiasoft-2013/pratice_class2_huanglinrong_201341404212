@@ -11,4 +11,9 @@
         android:layout_gravity="center_vertical"
         android:text="ME" />
 
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+
 </FrameLayout>
