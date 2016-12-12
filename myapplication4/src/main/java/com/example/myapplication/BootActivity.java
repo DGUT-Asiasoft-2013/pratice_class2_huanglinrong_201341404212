@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import com.example.myapplication.api.Server;
+
 import java.io.IOException;
 
 import okhttp3.Call;
@@ -35,8 +37,7 @@ public class BootActivity extends Activity {
             }
         },3000);*/
         OkHttpClient okHtttpClient = new OkHttpClient();
-        Request request = new Request.Builder()
-                .url("http://172.27.0.33:8080/membercenter/api/hello")
+        Request request = Server.requestBuildWithApi("hello")
                 .method("GET", null)
                 .build();
 

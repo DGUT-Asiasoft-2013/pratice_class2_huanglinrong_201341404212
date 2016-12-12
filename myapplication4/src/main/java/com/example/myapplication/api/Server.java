@@ -25,9 +25,9 @@ public class Server {
     public static OkHttpClient getSharedClient() {
         return okHttpClient;
     }
-
+    public static String serverAddress = "http://172.27.0.32:8080/membercenter/";
     public static Request.Builder requestBuildWithApi(String api) {
         return new Request.Builder()
-                .url("http://172.27.0.32:8080/membercenter/api/" + api);
+                .url(serverAddress+"api/"+api);
     }
 }

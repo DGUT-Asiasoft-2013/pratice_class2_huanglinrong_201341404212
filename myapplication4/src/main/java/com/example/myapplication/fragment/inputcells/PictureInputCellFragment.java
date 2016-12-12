@@ -15,6 +15,8 @@ import android.widget.TextView;
 
 import com.example.myapplication.R;
 
+import java.io.ByteArrayOutputStream;
+
 /**
  * Created by Administrator on 2016/12/5.
  */
@@ -25,6 +27,7 @@ public class PictureInputCellFragment extends BaseInputCellFragment {
     TextView hintText;
     final int REQUESTCODE_CAMERA = 1;
     final int REQUESTCODE_ALBUM = 2;
+    byte[] pngData;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -80,21 +83,29 @@ public class PictureInputCellFragment extends BaseInputCellFragment {
         startActivityForResult(intent, REQUESTCODE_ALBUM);
     }
 
+    void saveBitmap(Bitmap bmp) {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        pngData = baos.toByteArray();
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == Activity.RESULT_CANCELED) return;
         if (requestCode == REQUESTCODE_CAMERA) {
             Bitmap bmp = (Bitmap) data.getExtras().get("data");
+            saveBitmap(bmp);
             imageView.setImageBitmap(bmp);
             // Log.d("camera capture",data.getDataString()) ;
             //  Toast.makeText(getActivity(),data.getDataString(),Toast.LENGTH_LONG);
         } else if (requestCode == REQUESTCODE_ALBUM) {
             //Uri dataUri =data.getData();
             //Bitmap bmp = BitmapFactory.decodeFile(data.getDataString());
-            try{
-                Bitmap bmp = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(),data.getData());
+            try {
+                Bitmap bmp = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), data.getData());
+                saveBitmap(bmp);
                 imageView.setImageBitmap(bmp);
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
@@ -107,6 +118,10 @@ public class PictureInputCellFragment extends BaseInputCellFragment {
 
     public void setHintText(String hintText) {
         this.hintText.setHint(hintText);
+    }
+
+    public byte[] getPngData() {
+        return pngData;
     }
 
 }

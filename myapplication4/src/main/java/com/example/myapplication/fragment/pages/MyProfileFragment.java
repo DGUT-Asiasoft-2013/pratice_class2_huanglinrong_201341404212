@@ -1,15 +1,18 @@
 package com.example.myapplication.fragment.pages;
 
 import android.app.Fragment;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.myapplication.R;
 import com.example.myapplication.User;
 import com.example.myapplication.api.Server;
+import com.example.myapplication.fragment.AvatarView;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
@@ -20,6 +23,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import static com.example.myapplication.R.id.avatar;
+
 /**
  * Created by Administrator on 2016/12/7.
  */
@@ -27,6 +32,8 @@ import okhttp3.Response;
 public class MyProfileFragment extends Fragment {
     View view;
     TextView meText;
+    ProgressBar progressBar;
+    AvatarView meavatarView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -34,23 +41,31 @@ public class MyProfileFragment extends Fragment {
             view = inflater.inflate(R.layout.fragment_page_my_profile, null);
         }
         meText = (TextView) view.findViewById(R.id.me_text);
+        meavatarView = (AvatarView) view.findViewById(avatar);
+        progressBar = (ProgressBar) view.findViewById(R.id.me_progress);
         return view;
     }
 
     @Override
     public void onResume() {
+        meText.setVisibility(View.GONE);
+        progressBar.setVisibility(View.VISIBLE);
+
         OkHttpClient okHttpClient = Server.getSharedClient();
         Request request = Server.requestBuildWithApi("me")
                 .method("GET", null)
                 .build();
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(Call call, IOException e) {
+            public void onFailure(Call call, final IOException e) {
 
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        setView("出现错误！");
+                        progressBar.setVisibility(View.GONE);
+                        meText.setVisibility(View.VISIBLE);
+                        meText.setTextColor(Color.BLUE);
+                        meText.setText("连接未知错误" + e.getMessage());
                     }
                 });
             }
@@ -63,20 +78,24 @@ public class MyProfileFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            setView(user.getAccount());
+                            progressBar.setVisibility(View.GONE);
+                            meavatarView.load(user);
+                            meText.setVisibility(View.VISIBLE);
+                            meText.setTextColor(Color.BLACK);
+                            meText.setText("Hello  " + user.getAccount());
+
                         }
                     });
 
                 } catch (Exception e) {
-                    setView("出现错误！");
+                    progressBar.setVisibility(View.GONE);
+                    meText.setVisibility(View.VISIBLE);
+                    meText.setTextColor(Color.BLUE);
+                    meText.setText("连接成功，但有未知错误" + e.getMessage());
                 }
 
             }
         });
         super.onResume();
-    }
-
-    void setView(String account) {
-        meText.setText(account);
     }
 }

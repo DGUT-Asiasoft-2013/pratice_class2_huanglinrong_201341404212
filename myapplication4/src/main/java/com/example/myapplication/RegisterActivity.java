@@ -8,12 +8,14 @@ import android.os.Bundle;
 import android.view.View;
 
 import com.example.myapplication.api.Server;
+import com.example.myapplication.fragment.inputcells.PictureInputCellFragment;
 import com.example.myapplication.fragment.inputcells.SimpleTextInputCellFragment;
 
 import java.io.IOException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -31,6 +33,7 @@ public class RegisterActivity extends Activity {
     SimpleTextInputCellFragment fragInputCellPasswordRepeat;
     SimpleTextInputCellFragment fragInputCellAddress;
     SimpleTextInputCellFragment fragInputCellName;
+    PictureInputCellFragment fragInputCellPicture;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +45,7 @@ public class RegisterActivity extends Activity {
         fragInputCellPasswordRepeat = (SimpleTextInputCellFragment) getFragmentManager().findFragmentById(R.id.input_password_repeat);
         fragInputCellAddress = (SimpleTextInputCellFragment) getFragmentManager().findFragmentById(R.id.input_email);
         fragInputCellName = (SimpleTextInputCellFragment) getFragmentManager().findFragmentById(R.id.input_name);
+        fragInputCellPicture = (PictureInputCellFragment) getFragmentManager().findFragmentById(R.id.input_picture);
         findViewById(R.id.but_register_submit).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -64,24 +68,33 @@ public class RegisterActivity extends Activity {
         String name = fragInputCellName.getText();
         String email = fragInputCellAddress.getText();
         //加密注册时密码
-        password=MD5.getMD5(password);
-        OkHttpClient okHttpClient =Server.getSharedClient();
+        password = MD5.getMD5(password);
+        OkHttpClient okHttpClient = Server.getSharedClient();
 
-        RequestBody requestBody = new MultipartBody.Builder()
+        MultipartBody.Builder requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
                 .addFormDataPart("account", account)
                 .addFormDataPart("passwordHash", password)
                 .addFormDataPart("name", name)
-                .addFormDataPart("email", email)
-                .build();
+                .addFormDataPart("email", email);
+        //加载图片数据
+        if (fragInputCellPicture.getPngData() != null) {
+            requestBody
+                    .addFormDataPart(
+                            "avatar",
+                            "avatar",
+                            RequestBody
+                                    .create(MediaType.parse("image/png"),
+                                            fragInputCellPicture.getPngData()));
+        }
 
         Request request = Server.requestBuildWithApi("register")
                 .method("post", null)
-                .post(requestBody)
+                .post(requestBody.build())
                 .build();
 
         final ProgressDialog progressDialog = new ProgressDialog(RegisterActivity.this);
-        progressDialog.setMessage("Login...");
+        progressDialog.setMessage("注册中...");
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.show();
