@@ -13,9 +13,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:background="@android:color/black"
+            android:background="@android:color/white"
             android:text="FEED"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            />
 
         <View
             android:layout_width="wrap_content"

@@ -6,6 +6,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Shader;
 import android.os.Handler;
@@ -13,7 +15,6 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import com.example.myapplication.R;
-import com.example.myapplication.User;
 import com.example.myapplication.api.Server;
 
 import java.io.IOException;
@@ -42,22 +43,33 @@ public class AvatarView extends View {
     }
 
     Paint paint;
-    float radius;
+    float srcWidth, srcHeight;
     Handler mainThreadHandler = new Handler();
-    ;
 
     public void setBitmap(Bitmap bmp) {
-        paint = new Paint();
-        paint.setShader(new BitmapShader(bmp, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT));
-        radius = Math.min(bmp.getWidth(), bmp.getHeight()) / 2;
+        if (bmp == null) {
+            paint = new Paint();
+            paint.setColor(Color.GRAY);
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(1);
+            paint.setPathEffect(new DashPathEffect(new float[]{5, 10, 15, 20}, 0));
+            paint.setAntiAlias(true);
+        } else {
+            paint = new Paint();
+            paint.setShader(new BitmapShader(bmp, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT));
+            paint.setAntiAlias(true);
+            srcWidth = bmp.getWidth();
+            srcHeight = bmp.getHeight();
+        }
+
         invalidate();
     }
 
-    public void load(User user) {
+    public void load(String url) {
         OkHttpClient client = Server.getSharedClient();
 
         Request request = new Request.Builder()
-                .url(Server.serverAddress + user.getAvatar())
+                .url(Server.serverAddress + url)
                 .method("get", null)
                 .build();
 
@@ -73,10 +85,12 @@ public class AvatarView extends View {
                             if (bmp != null && !bmp.isRecycled()) {
                                 setBitmap(bmp);
                             } else {
-                                //没有头像的情况，绘制默认头像，从资源中获取Bitmap
+                                //1.没有头像的情况，绘制默认头像，从资源中获取Bitmap
                                 Resources res = getResources();
                                 Bitmap bmp = BitmapFactory.decodeResource(res, R.drawable.logo);
                                 setBitmap(bmp);
+                                //2.没有头像的情况，传输null，绘制
+                               // setBitmap(null);
                             }
 
                         }
@@ -85,7 +99,12 @@ public class AvatarView extends View {
                     mainThreadHandler.post(new Runnable() {
                         @Override
                         public void run() {
-
+                            //1.没有头像的情况，绘制默认头像，从资源中获取Bitmap
+                            Resources res = getResources();
+                            Bitmap bmp = BitmapFactory.decodeResource(res, R.drawable.logo);
+                            setBitmap(bmp);
+                            //解释错误,绘制null
+                            //setBitmap(null);
                         }
                     });
                 }
@@ -93,8 +112,13 @@ public class AvatarView extends View {
 
             @Override
             public void onFailure(Call arg0, IOException arg1) {
+                //1.没有头像的情况，绘制默认头像，从资源中获取Bitmap
+                Resources res = getResources();
+                Bitmap bmp = BitmapFactory.decodeResource(res, R.drawable.logo);
+                setBitmap(bmp);
                 // TODO Auto-generated method stub
-
+                //连接错误，绘制null
+                //setBitmap(null);
             }
         });
     }
@@ -103,7 +127,15 @@ public class AvatarView extends View {
     public void draw(Canvas canvas) {
         super.draw(canvas);
         if (paint != null) {
-            canvas.drawCircle(getWidth() / 2, getHeight() / 2, radius, paint);
+            canvas.save();
+            float dstWidth = getWidth();
+            float dstHeight = getHeight();
+            float scaleX = srcWidth / dstWidth;
+            float scaleY = srcHeight / dstHeight;
+            canvas.scale(1 / scaleX, 1 / scaleY);
+            canvas.drawCircle(srcWidth / 2, srcHeight / 2, Math.min(srcWidth, srcHeight) / 2, paint);
+            canvas.restore();
+
         }
 
     }

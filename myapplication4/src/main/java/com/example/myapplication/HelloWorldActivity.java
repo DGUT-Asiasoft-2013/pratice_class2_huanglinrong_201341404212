@@ -57,6 +57,11 @@ public class HelloWorldActivity extends Activity {
     protected void onResume() {
         super.onResume();
         tabbar.setSelectedItem(0);
+        //HelloWorldActivity的onResume默认切换tab导致的崩溃
+        //防止点击加号按钮事件后返回上一层时的tabbar[i]的不确定
+        if (tabbar.getSelectedIndex() < 0) {
+            tabbar.setSelectedItem(0);
+        }
     }
 
     void changeContentFragment(int index) {

@@ -1,13 +1,11 @@
 package com.example.myapplication.fragment;
 
 import android.app.Fragment;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.myapplication.InputEditActivity;
 import com.example.myapplication.R;
 
 /**
@@ -51,7 +49,6 @@ public class MainTabbarFragment extends Fragment {
     }
 
 
-
     //在HellWorldActivity上调用方法跳转InputEditActivity
     public static interface OnBtnGoNextListener {
         void onBtnGoNext();
@@ -86,6 +83,14 @@ public class MainTabbarFragment extends Fragment {
             onTabClicked(tabs[index]);
         }
     }
+
+    public int getSelectedIndex() {
+        for (int i = 0; i < tabs.length; i++) {
+            if (tabs[i].isSelected()) return i;
+        }
+        return -1;
+    }
+
 
     void onTabClicked(View tab) {
         int selectedIndex = -1;
