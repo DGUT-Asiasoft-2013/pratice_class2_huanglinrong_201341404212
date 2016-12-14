@@ -79,7 +79,7 @@ public class MyProfileFragment extends Fragment {
                         @Override
                         public void run() {
                             progressBar.setVisibility(View.GONE);
-                            meavatarView.load(user.getAvatar());
+                            meavatarView.load(user);
                             meText.setVisibility(View.VISIBLE);
                             meText.setTextColor(Color.BLACK);
                             meText.setText("Hello  " + user.getAccount());

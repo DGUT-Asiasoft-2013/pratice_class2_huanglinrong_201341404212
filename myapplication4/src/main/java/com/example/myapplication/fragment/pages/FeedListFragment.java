@@ -41,13 +41,19 @@ public class FeedListFragment extends Fragment {
     View view;
     ListView listView;
     List<Article> data;
+    View btnLoadMore;
+    TextView textLoadMore;
     int page = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (view == null) {
             view = inflater.inflate(R.layout.fragment_page_feed_list, null);
+            btnLoadMore = inflater.inflate(R.layout.feed_load_more_button, null);
+            textLoadMore = (TextView) btnLoadMore.findViewById(R.id.text);
+
             listView = (ListView) view.findViewById(R.id.list);
+            listView.addFooterView(btnLoadMore);
             listView.setAdapter(listAdapter);
 
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -56,10 +62,67 @@ public class FeedListFragment extends Fragment {
                     onItemClicked(i);
                 }
             });
+            btnLoadMore.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    loadmore();
+                }
+            });
+
 
         }
         return view;
     }
+
+    //加载更多按钮事件
+    void loadmore() {
+        btnLoadMore.setEnabled(false);
+        textLoadMore.setText("载入中…");
+
+        Request request = Server.requestBuildWithApi("feeds/" + (page + 1)).get().build();
+        Server.getSharedClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onResponse(Call arg0, Response arg1) throws IOException {
+                getActivity().runOnUiThread(new Runnable() {
+                    public void run() {
+                        btnLoadMore.setEnabled(true);
+                        textLoadMore.setText("加载更多");
+                    }
+                });
+                try {
+                    final Page<Article> feeds = new ObjectMapper().readValue(arg1.body().string(), new TypeReference<Page<Article>>() {
+                    });
+                    if (feeds.getNumber() > page) {
+                        getActivity().runOnUiThread(new Runnable() {
+                            public void run() {
+                                if (data == null) {
+                                    data = feeds.getContent();
+                                } else {
+                                    data.addAll(feeds.getContent());
+                                }
+                                page = feeds.getNumber();
+                                listAdapter.notifyDataSetChanged();
+                            }
+                        });
+                    }
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(Call arg0, IOException arg1) {
+                getActivity().runOnUiThread(new Runnable() {
+                    public void run() {
+                        btnLoadMore.setEnabled(true);
+                        textLoadMore.setText("加载更多");
+                    }
+                });
+            }
+        });
+    }
+
 
     void onItemClicked(int i) {
         Intent intent = new Intent(getActivity(), FeedsShowActivity.class);
@@ -99,15 +162,15 @@ public class FeedListFragment extends Fragment {
             TextView timeText = (TextView) viewFeed.findViewById(R.id.time_textView);
             AvatarView avatarView = (AvatarView) viewFeed.findViewById(R.id.image_avatar);
             Article article = data.get(i);
-            if (article.getAuthorAvatar() != null) {
-                avatarView.load(article.getAuthorAvatar());
+            if (article.getAuthor() != null) {
+                avatarView.load(article.getAuthor());
             } else {
                 //使用默认头像
                 Resources res = getResources();
                 Bitmap bmp = BitmapFactory.decodeResource(res, R.drawable.logo);
                 avatarView.setBitmap(bmp);
             }
-            nameText.setText(article.getAuthorName());
+            nameText.setText(article.getAuthor().getName());
             detailsText.setText(article.getTitle() + ":" + article.getText());
             timeText.setText(new SimpleDateFormat("hh:mm:ss").format(article.getCreateDate()));
 
@@ -137,18 +200,13 @@ public class FeedListFragment extends Fragment {
             }
 
             @Override
-            public void onResponse(Call call,final Response response) throws IOException {
+            public void onResponse(Call call, final Response response) throws IOException {
                 try {
+                    final Page<Article> data = new ObjectMapper().readValue(response.body().string(), new TypeReference<Page<Article>>() {
+                    });
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            Page<Article> data = null;
-                            try {
-                                data = new ObjectMapper().readValue(response.body().string(), new TypeReference<Page<Article>>() {
-                                });
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
                             FeedListFragment.this.page = data.getNumber();//取出页数
                             FeedListFragment.this.data = data.getContent();//取出数据
                             listAdapter.notifyDataSetInvalidated();//更新视图

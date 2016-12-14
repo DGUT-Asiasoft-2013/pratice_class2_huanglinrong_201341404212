@@ -11,28 +11,11 @@ public class Article implements Serializable {
     Integer id;
     User author;
 
-    public String getAuthorName() {
-        return authorName;
-    }
-
-    public void setAuthorName(String authorName) {
-        this.authorName = authorName;
-    }
-
-    public String getAuthorAvatar() {
-        return authorAvatar;
-    }
-
-    public void setAuthorAvatar(String authorAvatar) {
-        this.authorAvatar = authorAvatar;
-    }
-
     Date createDate;
     Date editDate;
     String title;
     String text;
-    String authorName;
-    String authorAvatar;
+
     public Integer getId() {
         return id;
     }

@@ -15,6 +15,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import com.example.myapplication.R;
+import com.example.myapplication.User;
 import com.example.myapplication.api.Server;
 
 import java.io.IOException;
@@ -65,11 +66,11 @@ public class AvatarView extends View {
         invalidate();
     }
 
-    public void load(String url) {
+    public void load(User user) {
         OkHttpClient client = Server.getSharedClient();
 
         Request request = new Request.Builder()
-                .url(Server.serverAddress + url)
+                .url(Server.serverAddress + user.getAvatar())
                 .method("get", null)
                 .build();
 
@@ -90,7 +91,7 @@ public class AvatarView extends View {
                                 Bitmap bmp = BitmapFactory.decodeResource(res, R.drawable.logo);
                                 setBitmap(bmp);
                                 //2.没有头像的情况，传输null，绘制
-                               // setBitmap(null);
+                                // setBitmap(null);
                             }
 
                         }
