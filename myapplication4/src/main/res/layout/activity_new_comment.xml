@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_gravity="center"
+        android:layout_weight="6"
+        android:gravity="center"
+        android:text="评论"
+        android:textColor="@android:color/black" />
+
+    <EditText
+        android:id="@+id/edit_input_discuss"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="88" />
+
+    <Button
+        android:id="@+id/btn_input_discuss"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:layout_weight="6"
+        android:gravity="center"
+        android:text="发送"
+        android:textColor="@android:color/black" />
+
+</LinearLayout>

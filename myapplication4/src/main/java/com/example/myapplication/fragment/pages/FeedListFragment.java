@@ -83,32 +83,33 @@ public class FeedListFragment extends Fragment {
         Request request = Server.requestBuildWithApi("feeds/" + (page + 1)).get().build();
         Server.getSharedClient().newCall(request).enqueue(new Callback() {
             @Override
-            public void onResponse(Call arg0, Response arg1) throws IOException {
+            public void onResponse(Call arg0, final Response arg1) throws IOException {
                 getActivity().runOnUiThread(new Runnable() {
                     public void run() {
                         btnLoadMore.setEnabled(true);
                         textLoadMore.setText("加载更多");
+                        try {
+                            final Page<Article> feeds = new ObjectMapper().readValue(arg1.body().string(), new TypeReference<Page<Article>>() {
+                            });
+                            if (feeds.getNumber() > page) {
+                                getActivity().runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        if (data == null) {
+                                            data = feeds.getContent();
+                                        } else {
+                                            data.addAll(feeds.getContent());
+                                        }
+                                        page = feeds.getNumber();
+                                        listAdapter.notifyDataSetChanged();
+                                    }
+                                });
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                     }
                 });
-                try {
-                    final Page<Article> feeds = new ObjectMapper().readValue(arg1.body().string(), new TypeReference<Page<Article>>() {
-                    });
-                    if (feeds.getNumber() > page) {
-                        getActivity().runOnUiThread(new Runnable() {
-                            public void run() {
-                                if (data == null) {
-                                    data = feeds.getContent();
-                                } else {
-                                    data.addAll(feeds.getContent());
-                                }
-                                page = feeds.getNumber();
-                                listAdapter.notifyDataSetChanged();
-                            }
-                        });
-                    }
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
+
             }
 
             @Override
@@ -123,15 +124,15 @@ public class FeedListFragment extends Fragment {
         });
     }
 
-
+    //点击详情事件
     void onItemClicked(int i) {
         Intent intent = new Intent(getActivity(), FeedsShowActivity.class);
-        intent.putExtra("text", data.get(i).getText());
+        Article article = data.get(i);
+        intent.putExtra("article", article);
         startActivity(intent);
-
-
     }
 
+    //设置布局接口
     BaseAdapter listAdapter = new BaseAdapter() {
         @Override
         public int getCount() {
@@ -179,6 +180,7 @@ public class FeedListFragment extends Fragment {
 
     };
 
+    //获取加载信息主要方法
     void reload() {
         Request request = Server.requestBuildWithApi("feeds")
                 .get()

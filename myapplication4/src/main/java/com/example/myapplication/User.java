@@ -1,10 +1,12 @@
 package com.example.myapplication;
 
+import java.io.Serializable;
+
 /**
  * Created by Administrator on 2016/12/10.
  */
 
-public class User {
+public class User implements Serializable {
     String account;//用户名
     String passwordHash;
     String name;//昵称
