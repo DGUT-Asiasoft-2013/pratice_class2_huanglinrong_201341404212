@@ -41,19 +41,21 @@ public class FeedListFragment extends Fragment {
     View view;
     ListView listView;
     List<Article> data;
-    View btnLoadMore;
-    TextView textLoadMore;
+    View loadmoreView;
+    TextView loadmoreBtn;
     int page = 0;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         if (view == null) {
             view = inflater.inflate(R.layout.fragment_page_feed_list, null);
-            btnLoadMore = inflater.inflate(R.layout.feed_load_more_button, null);
-            textLoadMore = (TextView) btnLoadMore.findViewById(R.id.text);
-
+            //获取加载更多视图和对应TextView
+            loadmoreView = inflater.inflate(R.layout.feed_load_more_button, null);
+            loadmoreBtn = (TextView) loadmoreView.findViewById(R.id.text);
+            //获取当前布局控件
             listView = (ListView) view.findViewById(R.id.list);
-            listView.addFooterView(btnLoadMore);
+            //加载视图
+            listView.addFooterView(loadmoreView);
             listView.setAdapter(listAdapter);
 
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -62,7 +64,7 @@ public class FeedListFragment extends Fragment {
                     onItemClicked(i);
                 }
             });
-            btnLoadMore.setOnClickListener(new View.OnClickListener() {
+            loadmoreView.setOnClickListener(new View.OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
@@ -77,8 +79,8 @@ public class FeedListFragment extends Fragment {
 
     //加载更多按钮事件
     void loadmore() {
-        btnLoadMore.setEnabled(false);
-        textLoadMore.setText("载入中…");
+        loadmoreView.setEnabled(false);
+        loadmoreBtn.setText("载入中…");
 
         Request request = Server.requestBuildWithApi("feeds/" + (page + 1)).get().build();
         Server.getSharedClient().newCall(request).enqueue(new Callback() {
@@ -86,8 +88,8 @@ public class FeedListFragment extends Fragment {
             public void onResponse(Call arg0, final Response arg1) throws IOException {
                 getActivity().runOnUiThread(new Runnable() {
                     public void run() {
-                        btnLoadMore.setEnabled(true);
-                        textLoadMore.setText("加载更多");
+                        loadmoreView.setEnabled(true);
+                        loadmoreBtn.setText("加载更多");
                         try {
                             final Page<Article> feeds = new ObjectMapper().readValue(arg1.body().string(), new TypeReference<Page<Article>>() {
                             });
@@ -116,8 +118,8 @@ public class FeedListFragment extends Fragment {
             public void onFailure(Call arg0, IOException arg1) {
                 getActivity().runOnUiThread(new Runnable() {
                     public void run() {
-                        btnLoadMore.setEnabled(true);
-                        textLoadMore.setText("加载更多");
+                        loadmoreView.setEnabled(true);
+                        loadmoreBtn.setText("加载更多");
                     }
                 });
             }
