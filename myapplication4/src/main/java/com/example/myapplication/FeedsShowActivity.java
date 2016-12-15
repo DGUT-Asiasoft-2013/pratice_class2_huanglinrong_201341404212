@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.myapplication.api.Server;
 import com.example.myapplication.fragment.AvatarView;
@@ -23,6 +25,7 @@ import java.util.List;
 
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.MultipartBody;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -40,6 +43,8 @@ public class FeedsShowActivity extends Activity {
     ListView discussList;//显示评论内容列表
     View loadMoreView;//加载按钮更多的布局
     TextView loadMoreBtn;//加载更多按钮
+    Button likeBtn;//点赞按钮
+    private boolean isLikeed;//判断当前用户是否已经点赞
 
     List<Comment> data;//传递回来的信息
     int page;//页数
@@ -81,6 +86,14 @@ public class FeedsShowActivity extends Activity {
             @Override
             public void onClick(View view) {
                 loadmore();
+            }
+        });
+        //点赞按钮事件
+        likeBtn = (Button) findViewById(R.id.btn_like);
+        likeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                likedOnClickListener();
             }
         });
     }
@@ -131,6 +144,10 @@ public class FeedsShowActivity extends Activity {
         super.onResume();
         //调用方法从服务器获取信息
         load();
+        //获取当前点赞的数目
+        getLikeCount();
+        //检查当前用户是否已经点赞
+        checkLiked();
         //设置article的作者和详细内容
         textAccount.setText(article.getAuthor().getAccount() + ":");
         textView.setText(article.getText() + "...");
@@ -183,6 +200,128 @@ public class FeedsShowActivity extends Activity {
                         }
                     });
                 }
+            }
+        });
+    }
+
+    //获取当前点赞数目
+    void getLikeCount() {
+        final Request request = Server.requestBuildWithApi("article/" + article.getId() + "/likes")
+                .get()
+                .build();
+        Server.getSharedClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(FeedsShowActivity.this, "连接获取点赞失败", Toast.LENGTH_SHORT).show();
+                        likeBtn.setText("404");
+                    }
+                });
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+
+                try {
+                    String reponseString = response.body().string();
+                    final Integer count = new ObjectMapper().readValue(reponseString, Integer.class);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            likeBtn.setText("赞(" + count + ")");
+                        }
+                    });
+                } catch (final Exception e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(FeedsShowActivity.this, "获取点赞失败\n" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            likeBtn.setText("404");
+                        }
+                    });
+
+                }
+            }
+        });
+    }
+
+    //检查当前用户是否已经点赞方法
+    void checkLiked() {
+        Request request = Server.requestBuildWithApi("article/" + article.getId() + "/isliked")
+                .get()
+                .build();
+        Server.getSharedClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(FeedsShowActivity.this, "连接获取点赞失败", Toast.LENGTH_SHORT).show();
+                        likeBtn.setTextColor(Color.RED);
+                    }
+                });
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                try {
+                    final String responseString = response.body().string();
+                    final Boolean result = new ObjectMapper().readValue(responseString, Boolean.class);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            isLikeed = result;
+                            if (result == true) {
+                                likeBtn.setTextColor(Color.BLUE);
+                            } else {
+                                likeBtn.setTextColor(Color.BLACK);
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(FeedsShowActivity.this, "获取点赞失败", Toast.LENGTH_SHORT).show();
+                            likeBtn.setTextColor(Color.RED);
+                        }
+                    });
+
+                }
+            }
+        });
+    }
+
+    void likedOnClickListener() {
+        MultipartBody body = new MultipartBody.Builder().setType(MultipartBody.FORM)
+                .addFormDataPart("likes", String.valueOf(!isLikeed))//传递给服务器的是与当前状态相反的状态
+                .build();
+        Request request = Server.requestBuildWithApi("article/" + article.getId() + "/likes")
+                .post(body)
+                .build();
+        Server.getSharedClient().newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(FeedsShowActivity.this, "客人，恭喜你点赞失败...", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                //重新刷新页面
+                //获取当前点赞的数目
+                getLikeCount();
+                //检查当前用户是否已经点赞
+                checkLiked();
             }
         });
     }
