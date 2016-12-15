@@ -82,7 +82,7 @@ public class MyProfileFragment extends Fragment {
                             meavatarView.load(user);
                             meText.setVisibility(View.VISIBLE);
                             meText.setTextColor(Color.BLACK);
-                            meText.setText("Hello  " + user.getAccount());
+                            meText.setText("Hello  " + user.getName());
 
                         }
                     });
@@ -93,7 +93,6 @@ public class MyProfileFragment extends Fragment {
                     meText.setTextColor(Color.BLUE);
                     meText.setText("连接成功，但有未知错误" + e.getMessage());
                 }
-
             }
         });
         super.onResume();
